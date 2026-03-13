@@ -1,0 +1,320 @@
+from IPython.display import HTML
+
+html_content = '''
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>スロット確率計算ツール</title>
+<style>
+body{
+background: #fff;
+font-family: 'Segoe UI', sans-serif;
+color: #111;
+text-align: center;
+padding-bottom:50px;
+}
+h1{
+color: #ff3c3c;
+text-shadow: 1px 1px 2px #aaa;
+margin-top:20px;
+}
+h2{
+color: #ffa500;
+text-shadow: 1px 1px 2px #aaa;
+}
+.tabs{
+margin:20px;
+}
+.tab-btn{
+padding: 12px 25px;
+cursor:pointer;
+background:#eee;
+border:none;
+color:#111;
+margin:5px;
+border-radius:8px;
+transition: 0.3s;
+}
+.tab-btn.active{
+background:#ff3c3c;
+color:#fff;
+box-shadow: 0 0 10px #ff3c3c;
+}
+input{
+width:90px;
+padding:5px;
+margin:5px;
+border-radius:5px;
+border:1px solid #aaa;
+text-align:center;
+transition:0.2s;
+}
+input:focus{
+border-color:#ff3c3c;
+box-shadow:0 0 5px #ff3c3c;
+outline:none;
+}
+button.calc{
+background:#ff3c3c;
+border:none;
+padding:12px 25px;
+color:white;
+font-size:16px;
+border-radius:8px;
+cursor:pointer;
+transition:0.3s;
+box-shadow:0 0 5px #ff3c3c;
+}
+button.calc:hover{
+box-shadow:0 0 15px #ff6f6f;
+transform: scale(1.05);
+}
+.result{
+margin-top:20px;
+font-size:20px;
+color:#00aaee;
+}
+.section{
+display:none;
+margin-top:20px;
+}
+.toggle-btn{
+padding:3px 8px;
+margin-left:5px;
+font-size:12px;
+border-radius:5px;
+border:none;
+cursor:pointer;
+background:#aaa;
+color:white;
+}
+.zone-row{
+margin-bottom:5px;
+}
+.zone-row button{
+margin-left:3px;
+}
+</style>
+</head>
+<body>
+
+<h1>🎰 スロット確率計算ツール</h1>
+
+<div class="tabs">
+<button class="tab-btn active" onclick="showTab('cz')">CZ確率</button>
+<button class="tab-btn" onclick="showTab('at')">初当たり</button>
+</div>
+
+<!-- CZ計算 -->
+<div id="cz" class="section" style="display:block;">
+<h2>CZ確率計算</h2>
+
+<div>
+<h3>レア役出現率 / CZ当選率</h3>
+<div>
+スイカ:
+<input type="text" id="suika_rate" value="1/90" data-fraction="1/90" data-decimal="0.0111">
+/
+<input type="text" id="suika_cz" value="0.10" data-fraction="10/100" data-decimal="0.10">
+<button class="toggle-btn" onclick="toggleFormat('suika_rate')">切替</button>
+<button class="toggle-btn" onclick="toggleFormat('suika_cz')">切替</button>
+</div>
+<div>
+弱チェ:
+<input type="text" id="weak_rate" value="1/80" data-fraction="1/80" data-decimal="0.0125">
+/
+<input type="text" id="weak_cz" value="0.05" data-fraction="5/100" data-decimal="0.05">
+<button class="toggle-btn" onclick="toggleFormat('weak_rate')">切替</button>
+<button class="toggle-btn" onclick="toggleFormat('weak_cz')">切替</button>
+</div>
+<div>
+強チェ:
+<input type="text" id="strong_rate" value="1/200" data-fraction="1/200" data-decimal="0.005">
+/
+<input type="text" id="strong_cz" value="0.50" data-fraction="50/100" data-decimal="0.50">
+<button class="toggle-btn" onclick="toggleFormat('strong_rate')">切替</button>
+<button class="toggle-btn" onclick="toggleFormat('strong_cz')">切替</button>
+</div>
+<div>
+チャンス目:
+<input type="text" id="chance_rate" value="1/150" data-fraction="1/150" data-decimal="0.0067">
+/
+<input type="text" id="chance_cz" value="0.20" data-fraction="20/100" data-decimal="0.20">
+<button class="toggle-btn" onclick="toggleFormat('chance_rate')">切替</button>
+<button class="toggle-btn" onclick="toggleFormat('chance_cz')">切替</button>
+</div>
+</div>
+
+<div>
+上位割合 <input type="text" id="upper" value="2/10" data-fraction="2/10" data-decimal="0.20">
+<button class="toggle-btn" onclick="toggleFormat('upper')">切替</button>
+<br>
+前兆G数 <input type="text" id="zencho" value="15">
+<br>
+CZ平均G数 <input type="text" id="czgame" value="8">
+</div>
+
+<br>
+<button class="calc" onclick="calculateCZ()">計算</button>
+<div class="result" id="cz_result"></div>
+</div>
+
+<!-- 初当たり計算 -->
+<div id="at" class="section">
+<h2>初当たり確率計算</h2>
+
+<div>
+天井G数 <input type="text" id="tenjo" value="600">
+<br>
+通常直撃1Gあたり <input type="text" id="normal_hit" value="1/1200" data-fraction="1/1200" data-decimal="0.0008333">
+<button class="toggle-btn" onclick="toggleFormat('normal_hit')">切替</button>
+<br>
+</div>
+
+<div>
+<h3>レア役直撃率</h3>
+スイカ <input type="text" id="suika_direct" value="0.15" data-fraction="15/100" data-decimal="0.15"><button class="toggle-btn" onclick="toggleFormat('suika_direct')">切替</button><br>
+弱チェ <input type="text" id="weak_direct" value="0.15" data-fraction="15/100" data-decimal="0.15"><button class="toggle-btn" onclick="toggleFormat('weak_direct')">切替</button><br>
+強チェ <input type="text" id="strong_direct" value="0.15" data-fraction="15/100" data-decimal="0.15"><button class="toggle-btn" onclick="toggleFormat('strong_direct')">切替</button><br>
+チャンス目 <input type="text" id="chance_direct" value="0.15" data-fraction="15/100" data-decimal="0.15"><button class="toggle-btn" onclick="toggleFormat('chance_direct')">切替</button><br>
+</div>
+
+<div>
+<h3>ゾーン（追加/削除可能）</h3>
+<div id="zones_container"></div>
+<button onclick="addZone()">ゾーン追加</button>
+</div>
+
+<div>
+CZ当選率 <input type="text" id="cz_input" value="0.004" data-fraction="4/1000" data-decimal="0.004"><button class="toggle-btn" onclick="toggleFormat('cz_input')">切替</button><br>
+CZ成功率 <input type="text" id="success_rate" value="0.35" data-fraction="35/100" data-decimal="0.35"><button class="toggle-btn" onclick="toggleFormat('success_rate')">切替</button><br>
+</div>
+
+<br>
+<button class="calc" onclick="calculateAT()">計算</button>
+<div class="result" id="at_result"></div>
+</div>
+
+<script>
+// 分数文字列を小数に変換
+function fracToNum(str){
+if(str.includes("/")){
+let parts = str.split("/");
+return Number(parts[0])/Number(parts[1]);
+}
+return Number(str);
+}
+
+// タブ切替
+function showTab(tab){
+document.getElementById("cz").style.display="none";
+document.getElementById("at").style.display="none";
+document.getElementById(tab).style.display="block";
+let buttons=document.getElementsByClassName("tab-btn");
+for(let b of buttons){ b.classList.remove("active"); }
+event.target.classList.add("active");
+}
+
+// 入力切替
+function toggleFormat(id){
+let input = (typeof id==='string') ? document.getElementById(id) : id;
+let current = input.value;
+if(input.getAttribute('data-fraction') && input.getAttribute('data-decimal')){
+if(current === input.getAttribute('data-fraction')){
+input.value = input.getAttribute('data-decimal');
+} else {
+input.value = input.getAttribute('data-fraction');
+}
+}
+}
+
+// CZ計算
+function calculateCZ(){
+let rates = [
+fracToNum(suika_rate.value) * Number(suika_cz.value),
+fracToNum(weak_rate.value) * Number(weak_cz.value),
+fracToNum(strong_rate.value) * Number(strong_cz.value),
+fracToNum(chance_rate.value) * Number(chance_cz.value)
+];
+let notHit = 1;
+for(let r of rates){ notHit *= (1 - r); }
+
+let oneGameProb = 1 - notHit;
+let stopGames = Number(zencho.value) + Number(czgame.value);
+let realProb = 1 / ( (1/oneGameProb) + stopGames );
+
+let upperProb = realProb * fracToNum(upper.value);
+let lowerProb = realProb * (1 - fracToNum(upper.value));
+
+cz_result.innerHTML =
+"CZ確率: 1/" + (1/realProb).toFixed(1) + "<br>" +
+"上位CZ確率: 1/" + (1/upperProb).toFixed(1) + "<br>" +
+"下位CZ確率: 1/" + (1/lowerProb).toFixed(1);
+}
+
+// 初当たり計算
+function calculateAT(){
+let tenjo = Number(document.getElementById("tenjo").value);
+let normal_hit = fracToNum(document.getElementById("normal_hit").value);
+let cz_rate_val = fracToNum(document.getElementById("cz_input").value);
+let cz_success_val = fracToNum(document.getElementById("success_rate").value);
+
+let rare_rates = [
+{rate: fracToNum(document.getElementById("suika_rate").value), direct: fracToNum(document.getElementById("suika_direct").value)},
+{rate: fracToNum(document.getElementById("weak_rate").value), direct: fracToNum(document.getElementById("weak_direct").value)},
+{rate: fracToNum(document.getElementById("strong_rate").value), direct: fracToNum(document.getElementById("strong_direct").value)},
+{rate: fracToNum(document.getElementById("chance_rate").value), direct: fracToNum(document.getElementById("chance_direct").value)}
+];
+
+let zonesContainer = document.getElementById("zones_container").children;
+let zones = {};
+for(let z of zonesContainer){
+let g = Number(z.querySelector(".zone_game").value);
+let r = fracToNum(z.querySelector(".zone_rate").value);
+zones[g] = r;
+}
+
+let not_hit_prob = 1.0;
+let expected_games = 0.0;
+
+for(let game=1; game<=tenjo; game++){
+let normal = normal_hit;
+let cz = cz_rate_val * cz_success_val;
+let rare = 0;
+for(let r of rare_rates){ rare += r.rate * r.direct; }
+let zone = zones[game] || 0;
+let hit_prob = 1 - ((1-normal)*(1-cz)*(1-rare)*(1-zone));
+let actual_hit = not_hit_prob * hit_prob;
+expected_games += actual_hit * game;
+not_hit_prob *= (1 - hit_prob);
+}
+
+expected_games += not_hit_prob * tenjo;
+
+at_result.innerHTML =
+"平均初当たりゲーム数: 約 " + expected_games.toFixed(1) + "G<br>" +
+"初当たり確率: 約 1/" + (expected_games.toFixed(1));
+}
+
+// ゾーン追加
+function addZone(){
+let container = document.getElementById("zones_container");
+let div = document.createElement("div");
+div.classList.add("zone-row");
+div.innerHTML = `
+ゾーンG数 <input type="number" class="zone_game" value="100">
+当選率 <input type="text" class="zone_rate" value="1/5" data-fraction="1/5" data-decimal="0.2">
+<button class="toggle-btn" onclick="toggleFormat(this.previousElementSibling)">切替</button>
+<button onclick="this.parentNode.remove()">削除</button>
+`;
+container.appendChild(div);
+}
+</script>
+
+</body>
+</html>
+'''
+
+# Display the HTML content
+HTML(html_content)
